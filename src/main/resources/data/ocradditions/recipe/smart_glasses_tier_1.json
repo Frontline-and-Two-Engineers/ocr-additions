@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "C": {
+      "item": "opencomputers:chip1"
+    },
+    "G": {
+      "item": "minecraft:glass_pane"
+    },
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "S": {
+      "item": "opencomputers:screen1"
+    },
+    "T": {
+      "item": "opencomputers:transistor"
+    }
+  },
+  "pattern": [
+    "GIG",
+    "SCS",
+    "T T"
+  ],
+  "result": {
+    "count": 1,
+    "id": "ocradditions:smart_glasses_tier_1"
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "C": {
+      "item": "opencomputers:chip3"
+    },
+    "D": {
+      "item": "minecraft:diamond"
+    },
+    "E": {
+      "item": "minecraft:ender_eye"
+    },
+    "G": {
+      "item": "ocradditions:radar_tier_2"
+    },
+    "W": {
+      "item": "opencomputers:wlancard2"
+    }
+  },
+  "pattern": [
+    "DED",
+    "DGD",
+    "CWC"
+  ],
+  "result": {
+    "count": 1,
+    "id": "ocradditions:radar_tier_3"
+  }
+}

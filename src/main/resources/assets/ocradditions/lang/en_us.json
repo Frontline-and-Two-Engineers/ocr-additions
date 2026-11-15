@@ -1,0 +1,32 @@
+{
+  "itemGroup.ocradditions": "OCR Additions",
+
+  "block.ocradditions.glasses_bridge": "Glasses Bridge",
+  "block.ocradditions.radar_tier_1": "Radar (Tier 1)",
+  "block.ocradditions.radar_tier_2": "Radar (Tier 2)",
+  "block.ocradditions.radar_tier_3": "Radar (Tier 3)",
+
+  "item.ocradditions.smart_glasses_tier_1": "Smart Glasses (Tier 1)",
+  "item.ocradditions.smart_glasses_tier_2": "Smart Glasses (Tier 2)",
+  "item.ocradditions.smart_glasses_tier_3": "Smart Glasses (Tier 3)",
+
+  "tooltip.ocradditions.glasses_tier_1": "Tier 1: 2D HUD Overlay",
+  "tooltip.ocradditions.glasses_tier_2": "Tier 2: HUD + Chat Prefix + Clickable HUD + Graphs",
+  "tooltip.ocradditions.glasses_tier_3": "Tier 3: 3D AR Overlay + Gaze Tracking + Telemetry",
+  "tooltip.ocradditions.radar_tier_1": "Range: 64 blocks | Output: Entity types",
+  "tooltip.ocradditions.radar_tier_2": "Range: 128 blocks | Output: Types & distance",
+  "tooltip.ocradditions.radar_tier_3": "Range: 256 blocks | Output: Types, names, distance & relative coords",
+
+  "tooltip.ocradditions.bound": "Bound to Bridge: %s...",
+  "tooltip.ocradditions.unbound": "Unbound — Right-click a Glasses Bridge to bind",
+  "tooltip.ocradditions.energy": "Energy: %s / %s FE",
+
+  "message.ocradditions.bound": "Smart Glasses bound to Bridge %s...",
+  "message.ocradditions.bridge_info": "Bridge ID: %s... | Chat prefix: %s",
+
+  "screen.ocradditions.cursor": "Smart Glasses HUD Cursor",
+
+  "key.categories.ocradditions": "OCR Additions",
+  "key.ocradditions.gaze": "Send Gaze Target (Tier 3)",
+  "key.ocradditions.cursor": "Toggle HUD Cursor (Tier 2+)"
+}

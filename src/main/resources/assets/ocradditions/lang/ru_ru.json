@@ -1,0 +1,32 @@
+{
+  "itemGroup.ocradditions": "OCR Additions",
+
+  "block.ocradditions.glasses_bridge": "Мост умных очков",
+  "block.ocradditions.radar_tier_1": "Радар (1 уровень)",
+  "block.ocradditions.radar_tier_2": "Радар (2 уровень)",
+  "block.ocradditions.radar_tier_3": "Радар (3 уровень)",
+
+  "item.ocradditions.smart_glasses_tier_1": "Умные очки (1 уровень)",
+  "item.ocradditions.smart_glasses_tier_2": "Умные очки (2 уровень)",
+  "item.ocradditions.smart_glasses_tier_3": "Умные очки (3 уровень)",
+
+  "tooltip.ocradditions.glasses_tier_1": "1 уровень: Простой 2D HUD-оверлей",
+  "tooltip.ocradditions.glasses_tier_2": "2 уровень: HUD + префикс чата + кликабельный HUD + графики",
+  "tooltip.ocradditions.glasses_tier_3": "3 уровень: 3D AR-оверлей + взгляд + телеметрия носителя",
+  "tooltip.ocradditions.radar_tier_1": "Радиус: 64 блока | Данные: типы сущностей",
+  "tooltip.ocradditions.radar_tier_2": "Радиус: 128 блоков | Данные: типы и дистанция",
+  "tooltip.ocradditions.radar_tier_3": "Радиус: 256 блоков | Данные: типы, имена, дистанция и отн. координаты",
+
+  "tooltip.ocradditions.bound": "Привязаны к мосту: %s...",
+  "tooltip.ocradditions.unbound": "Не привязаны — ПКМ по Мосту умных очков для привязки",
+  "tooltip.ocradditions.energy": "Энергия: %s / %s FE",
+
+  "message.ocradditions.bound": "Умные очки привязаны к мосту %s...",
+  "message.ocradditions.bridge_info": "ID моста: %s... | Префикс чата: %s",
+
+  "screen.ocradditions.cursor": "Курсор HUD умных очков",
+
+  "key.categories.ocradditions": "OCR Additions",
+  "key.ocradditions.gaze": "Передать цель взгляда (3 ур.)",
+  "key.ocradditions.cursor": "Курсор кликабельного HUD (2+ ур.)"
+}

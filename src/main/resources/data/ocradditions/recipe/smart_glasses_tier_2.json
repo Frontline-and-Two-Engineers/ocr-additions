@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "C": {
+      "item": "opencomputers:chip2"
+    },
+    "G": {
+      "item": "minecraft:gold_ingot"
+    },
+    "R": {
+      "item": "minecraft:redstone"
+    },
+    "S": {
+      "item": "ocradditions:smart_glasses_tier_1"
+    },
+    "W": {
+      "item": "opencomputers:wlancard1"
+    }
+  },
+  "pattern": [
+    "GWG",
+    "SCS",
+    "R R"
+  ],
+  "result": {
+    "count": 1,
+    "id": "ocradditions:smart_glasses_tier_2"
+  }
+}
