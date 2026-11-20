@@ -171,11 +171,14 @@ public class SmartGlassesItem extends Item implements Equipable {
     private static ItemStack findInCurios(Player player) {
         try {
             Class<?> curiosApi = Class.forName("top.theillusivec4.curios.api.CuriosApi");
+            Class<?> curiosHandlerClass = Class.forName("top.theillusivec4.curios.api.type.capability.ICuriosItemHandler");
+            Class<?> slotResultClass = Class.forName("top.theillusivec4.curios.api.SlotResult");
             Method getInventory = curiosApi.getMethod("getCuriosInventory", LivingEntity.class);
             Optional<?> invOpt = (Optional<?>) getInventory.invoke(null, player);
             if (invOpt.isPresent()) {
                 Object handler = invOpt.get();
-                Method findFirst = handler.getClass().getMethod("findFirstCurio", Item.class);
+                Method findFirst = curiosHandlerClass.getMethod("findFirstCurio", Item.class);
+                Method stackMethod = slotResultClass.getMethod("stack");
                 for (Item item : List.of(
                         OCRAdditions.SMART_GLASSES_TIER_3.get(),
                         OCRAdditions.SMART_GLASSES_TIER_2.get(),
@@ -183,9 +186,7 @@ public class SmartGlassesItem extends Item implements Equipable {
                 )) {
                     Optional<?> resultOpt = (Optional<?>) findFirst.invoke(handler, item);
                     if (resultOpt.isPresent()) {
-                        Object slotResult = resultOpt.get();
-                        Method stackMethod = slotResult.getClass().getMethod("stack");
-                        return (ItemStack) stackMethod.invoke(slotResult);
+                        return (ItemStack) stackMethod.invoke(resultOpt.get());
                     }
                 }
             }

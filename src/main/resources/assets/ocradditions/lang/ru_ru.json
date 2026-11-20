@@ -2,6 +2,8 @@
   "itemGroup.ocradditions": "OCR Additions",
 
   "block.ocradditions.glasses_bridge": "Мост умных очков",
+  "block.ocradditions.card_rack": "Стойка для карт",
+  "block.ocradditions.raid_v2": "RAID v2",
   "block.ocradditions.radar_tier_1": "Радар (1 уровень)",
   "block.ocradditions.radar_tier_2": "Радар (2 уровень)",
   "block.ocradditions.radar_tier_3": "Радар (3 уровень)",
@@ -16,6 +18,10 @@
   "tooltip.ocradditions.radar_tier_1": "Радиус: 64 блока | Данные: типы сущностей",
   "tooltip.ocradditions.radar_tier_2": "Радиус: 128 блоков | Данные: типы и дистанция",
   "tooltip.ocradditions.radar_tier_3": "Радиус: 256 блоков | Данные: типы, имена, дистанция и отн. координаты",
+  "tooltip.ocradditions.card_rack": "Подключает до 8 карт расширения по проводу (лимит от CPU: Т1=2, Т2=4, Т3=6, Т4=8)",
+  "tooltip.ocradditions.raid_v2": "Объединяет до 18 дисков/SSD. Требует CPU (ограничивает скорость) и ОЗУ (4..18 дисков)",
+  "gui.ocradditions.card_rack.status": "Активно: %s / %s карт",
+  "gui.ocradditions.raid_v2.status": "%s/%s диск. | Скор:%s | %s МБ",
 
   "tooltip.ocradditions.bound": "Привязаны к мосту: %s...",
   "tooltip.ocradditions.unbound": "Не привязаны — ПКМ по Мосту умных очков для привязки",
@@ -23,6 +29,8 @@
 
   "message.ocradditions.bound": "Умные очки привязаны к мосту %s...",
   "message.ocradditions.bridge_info": "ID моста: %s... | Префикс чата: %s",
+  "message.ocradditions.card_rack_disabled": "Стойка для карт отключена в конфиге сервера.",
+  "message.ocradditions.raid_v2_disabled": "RAID v2 отключён в конфиге сервера.",
 
   "screen.ocradditions.cursor": "Курсор HUD умных очков",
 

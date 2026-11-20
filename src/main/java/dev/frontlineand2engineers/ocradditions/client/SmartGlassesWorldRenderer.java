@@ -41,7 +41,9 @@ public final class SmartGlassesWorldRenderer {
         boolean hasWorldWidgets = false;
         boolean hasEntityMarkers = false;
         for (HudWidget w : widgets) {
-            if (w.type() == HudWidget.Type.WORLD_MARKER || w.type() == HudWidget.Type.WORLD_LINE) {
+            if (w.type() == HudWidget.Type.WORLD_MARKER
+                    || w.type() == HudWidget.Type.WORLD_LINE
+                    || w.type() == HudWidget.Type.WORLD_BOX) {
                 hasWorldWidgets = true;
             } else if (w.type() == HudWidget.Type.ENTITY_MARKER) {
                 hasWorldWidgets = true;
@@ -96,6 +98,18 @@ public final class SmartGlassesWorldRenderer {
                     lines.addVertex(mat, w.x(), w.y(), w.z()).setColor(r, g, b, a).setNormal(nx, ny, nz);
                     lines.addVertex(mat, w.x2(), w.y2(), w.z2()).setColor(r, g, b, a).setNormal(nx, ny, nz);
                     poseStack.popPose();
+                }
+                case WORLD_BOX -> {
+                    double minX = Math.min(w.x(), w.x2());
+                    double minY = Math.min(w.y(), w.y2());
+                    double minZ = Math.min(w.z(), w.z2());
+                    double maxX = Math.max(w.x(), w.x2());
+                    double maxY = Math.max(w.y(), w.y2());
+                    double maxZ = Math.max(w.z(), w.z2());
+                    AABB box = new AABB(minX, minY, minZ, maxX, maxY, maxZ);
+                    renderBoxAndLabel(poseStack, bufferSource, camera, camPos, font, box,
+                            (minX + maxX) * 0.5, maxY + 0.25, (minZ + maxZ) * 0.5,
+                            w.text(), argb, r, g, b, a);
                 }
                 case ENTITY_MARKER -> {
                     if (entityByUuid == null) continue;

@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": {
+      "item": "opencomputers:chip2"
+    },
+    "C": {
+      "item": "opencomputers:cable"
+    },
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "P": {
+      "item": "opencomputers:printedcircuitboard"
+    },
+    "S": {
+      "item": "opencomputers:cardbase"
+    }
+  },
+  "pattern": [
+    "ISI",
+    "PBP",
+    "ICI"
+  ],
+  "result": {
+    "count": 1,
+    "id": "ocradditions:card_rack"
+  }
+}

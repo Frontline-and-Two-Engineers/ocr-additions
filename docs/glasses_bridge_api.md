@@ -57,6 +57,16 @@ local bridge = component.glasses_bridge
 - `dimension`, `biome`, `dayTime`
 - `isSprinting`, `isSneaking`, `isInWater`, `isOnGround`
 - `energy`, `maxEnergy` *(запас FE в очках)*
+- `screenWidth`, `screenHeight` *(масштабируемое разрешение GUI клиента)*
+
+### `bridge.getScreenSize(playerUuid: string): (number, number) | (nil, string)` *(direct)*
+Возвращает текущие `screenWidth, screenHeight` клиента носителя.
+
+### `bridge.playSound(playerUuid: string, soundId: string[, volume: number, pitch: number]): boolean[, string]`
+Воспроизводит приватный звуковой сигнал только в очках указанного игрока (например `"minecraft:entity.experience_orb.pickup"`). `volume` (`0.0..2.0`, по умолч. `1.0`), `pitch` (`0.5..2.0`, по умолч. `1.0`).
+
+### `bridge.broadcastSound(soundId: string[, volume: number, pitch: number]): number`
+Воспроизводит звуковой сигнал на всех подключённых к мосту очках. Возвращает число получателей.
 
 ### `bridge.sendMessage(playerUuid: string, message: string): boolean[, string]` *(требует Tier 2+)*
 Отправляет сообщение в чат конкретному подключённому игроку с префиксом `[Glasses]`.
@@ -94,6 +104,7 @@ local bridge = component.glasses_bridge
 ### 3D AR-оверлей (Tier 3)
 - `bridge.addWorldMarker(id, x, y, z, label[, color]): boolean` — 3D-метка с текстом в мире (координаты относительно моста при `relativeCoordinates = true`).
 - `bridge.addWorldLine(id, x1, y1, z1, x2, y2, z2[, color]): boolean` — 3D-линия между двумя точками.
+- `bridge.addWorldBox(id, x1, y1, z1, x2, y2, z2[, label, color]): boolean` — 3D-рамка (wireframe куб/параллелепипед) между двумя углами.
 - `bridge.addEntityMarker(id, entityUuid, label[, color]): boolean` — 3D-рамка и подпись, автоматически следующие за сущностью с указанным `entityUuid`.
 
 ---
@@ -113,6 +124,7 @@ local bridge = component.glasses_bridge
 - `bridge.setPlayerClickable(playerUuid, id, clickable)` *(проверяет Tier 2+ игрока)*
 - `bridge.addPlayerWorldMarker(playerUuid, id, x, y, z, label[, color])` *(проверяет Tier 3 игрока)*
 - `bridge.addPlayerWorldLine(playerUuid, id, x1, y1, z1, x2, y2, z2[, color])` *(проверяет Tier 3 игрока)*
+- `bridge.addPlayerWorldBox(playerUuid, id, x1, y1, z1, x2, y2, z2[, label, color])` *(проверяет Tier 3 игрока)*
 - `bridge.addPlayerEntityMarker(playerUuid, id, entityUuid, label[, color])` *(алиас: `addEntityPlayerMarker`)*
 
 ---
@@ -129,6 +141,7 @@ local bridge = component.glasses_bridge
 | :--- | :--- |
 | `glasses_player_connected` | `address, playerUuid, playerName, tier` |
 | `glasses_player_disconnected` | `address, playerUuid, playerName` |
+| `glasses_screen_resized` | `address, playerUuid, playerName, screenWidth, screenHeight` |
 | `glasses_chat_command` *(Tier 2+)* | `address, playerUuid, playerName, command, prefix` |
 | `glasses_hud_click` *(Tier 2+)* | `address, playerUuid, playerName, widgetId, button` |
 | `glasses_gaze` (`targetType == "block"`, Tier 3) | `address, playerUuid, playerName, "block", hitX, hitY, hitZ, blockX, blockY, blockZ, face, blockId` |

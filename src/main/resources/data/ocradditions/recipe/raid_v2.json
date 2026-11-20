@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": {
+      "item": "opencomputers:chip3"
+    },
+    "C": {
+      "item": "opencomputers:cable"
+    },
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "P": {
+      "item": "opencomputers:printedcircuitboard"
+    },
+    "R": {
+      "item": "opencomputers:raid"
+    }
+  },
+  "pattern": [
+    "IRI",
+    "PBP",
+    "ICI"
+  ],
+  "result": {
+    "count": 1,
+    "id": "ocradditions:raid_v2"
+  }
+}

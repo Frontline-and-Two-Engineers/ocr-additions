@@ -2,6 +2,8 @@
   "itemGroup.ocradditions": "OCR Additions",
 
   "block.ocradditions.glasses_bridge": "Glasses Bridge",
+  "block.ocradditions.card_rack": "Card Rack",
+  "block.ocradditions.raid_v2": "RAID v2",
   "block.ocradditions.radar_tier_1": "Radar (Tier 1)",
   "block.ocradditions.radar_tier_2": "Radar (Tier 2)",
   "block.ocradditions.radar_tier_3": "Radar (Tier 3)",
@@ -16,6 +18,10 @@
   "tooltip.ocradditions.radar_tier_1": "Range: 64 blocks | Output: Entity types",
   "tooltip.ocradditions.radar_tier_2": "Range: 128 blocks | Output: Types & distance",
   "tooltip.ocradditions.radar_tier_3": "Range: 256 blocks | Output: Types, names, distance & relative coords",
+  "tooltip.ocradditions.card_rack": "Connects up to 8 expansion cards over OC cable (capacity depends on CPU tier: T1=2, T2=4, T3=6, T4=8)",
+  "tooltip.ocradditions.raid_v2": "Combines up to 18 HDDs/SSDs. Requires CPU (caps speed) & RAM (4..18 drives)",
+  "gui.ocradditions.card_rack.status": "Active: %s / %s cards",
+  "gui.ocradditions.raid_v2.status": "%s/%s disks | Spd:%s | %s MB",
 
   "tooltip.ocradditions.bound": "Bound to Bridge: %s...",
   "tooltip.ocradditions.unbound": "Unbound — Right-click a Glasses Bridge to bind",
@@ -23,6 +29,8 @@
 
   "message.ocradditions.bound": "Smart Glasses bound to Bridge %s...",
   "message.ocradditions.bridge_info": "Bridge ID: %s... | Chat prefix: %s",
+  "message.ocradditions.card_rack_disabled": "Card Rack is disabled in the server config.",
+  "message.ocradditions.raid_v2_disabled": "RAID v2 is disabled in the server config.",
 
   "screen.ocradditions.cursor": "Smart Glasses HUD Cursor",
 

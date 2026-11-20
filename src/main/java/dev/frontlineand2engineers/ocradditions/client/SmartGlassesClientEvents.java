@@ -4,11 +4,16 @@ import com.mojang.blaze3d.platform.InputConstants;
 import dev.frontlineand2engineers.ocradditions.OCRAdditions;
 import dev.frontlineand2engineers.ocradditions.item.SmartGlassesItem;
 import dev.frontlineand2engineers.ocradditions.network.GlassesGazePayload;
+import dev.frontlineand2engineers.ocradditions.network.GlassesScreenSizePayload;
+import dev.frontlineand2engineers.ocradditions.network.GlassesSoundPayload;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.phys.AABB;
@@ -22,6 +27,7 @@ import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.RegisterGuiLayersEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
+import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
 import net.neoforged.neoforge.common.NeoForge;
@@ -33,6 +39,8 @@ import org.lwjgl.glfw.GLFW;
  */
 public final class SmartGlassesClientEvents {
     private static final double GAZE_RANGE = 64.0;
+    private static int lastSentWidth = -1;
+    private static int lastSentHeight = -1;
 
     public static final KeyMapping GAZE_KEY = new KeyMapping(
             "key.ocradditions.gaze",
@@ -54,6 +62,7 @@ public final class SmartGlassesClientEvents {
     public static void register(IEventBus modEventBus) {
         modEventBus.addListener(SmartGlassesClientEvents::onRegisterGuiLayers);
         modEventBus.addListener(SmartGlassesClientEvents::onRegisterKeyMappings);
+        modEventBus.addListener(SmartGlassesClientEvents::onRegisterScreens);
         NeoForge.EVENT_BUS.addListener(SmartGlassesClientEvents::onRenderLevelStage);
         NeoForge.EVENT_BUS.addListener(SmartGlassesClientEvents::onClientTick);
         NeoForge.EVENT_BUS.addListener(SmartGlassesClientEvents::onClientDisconnect);
@@ -72,6 +81,11 @@ public final class SmartGlassesClientEvents {
         event.register(CURSOR_KEY);
     }
 
+    private static void onRegisterScreens(RegisterMenuScreensEvent event) {
+        event.register(OCRAdditions.CARD_RACK_MENU.get(), CardRackScreen::new);
+        event.register(OCRAdditions.RAID_V2_MENU.get(), RaidV2Screen::new);
+    }
+
     private static void onRenderLevelStage(RenderLevelStageEvent event) {
         SmartGlassesWorldRenderer.onRenderLevelStage(event);
     }
@@ -81,6 +95,18 @@ public final class SmartGlassesClientEvents {
         if (mc.player == null || mc.level == null) return;
 
         int tier = SmartGlassesItem.getTier(SmartGlassesItem.getEquippedGlasses(mc.player));
+        if (tier >= 1) {
+            int guiW = mc.getWindow().getGuiScaledWidth();
+            int guiH = mc.getWindow().getGuiScaledHeight();
+            if (guiW != lastSentWidth || guiH != lastSentHeight) {
+                lastSentWidth = guiW;
+                lastSentHeight = guiH;
+                PacketDistributor.sendToServer(new GlassesScreenSizePayload(guiW, guiH));
+            }
+        } else {
+            lastSentWidth = -1;
+            lastSentHeight = -1;
+        }
         while (GAZE_KEY.consumeClick()) {
             if (tier >= 3) {
                 sendGazeRaycast(mc);
@@ -95,6 +121,18 @@ public final class SmartGlassesClientEvents {
 
     private static void onClientDisconnect(ClientPlayerNetworkEvent.LoggingOut event) {
         ClientHudState.clear();
+        lastSentWidth = -1;
+        lastSentHeight = -1;
+    }
+
+    public static void playGlassesSound(GlassesSoundPayload payload) {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null) return;
+        ResourceLocation id = ResourceLocation.tryParse(payload.soundId());
+        if (id == null) return;
+        SoundEvent sound = BuiltInRegistries.SOUND_EVENT.getOptional(id)
+                .orElseGet(() -> SoundEvent.createVariableRangeEvent(id));
+        mc.getSoundManager().play(SimpleSoundInstance.forUI(sound, payload.pitch(), payload.volume()));
     }
 
     private static void sendGazeRaycast(Minecraft mc) {

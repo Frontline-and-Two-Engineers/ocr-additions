@@ -10,6 +10,7 @@ import li.cil.oc.api.machine.Arguments;
 import li.cil.oc.api.machine.Callback;
 import li.cil.oc.api.machine.Context;
 import li.cil.oc.api.network.Connector;
+import li.cil.oc.api.network.Node;
 import li.cil.oc.api.network.Visibility;
 import li.cil.oc.api.prefab.BlockEntityEnvironment;
 import net.minecraft.core.BlockPos;
@@ -19,6 +20,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -50,13 +52,7 @@ public class RadarBlockEntity extends BlockEntityEnvironment implements DeviceIn
                 .withComponent("radar", Visibility.Network)
                 .withConnector(32)
                 .create();
-        this.deviceInfo = Map.of(
-                DeviceAttribute.Class, DeviceClass.Generic,
-                DeviceAttribute.Description, "Entity radar",
-                DeviceAttribute.Vendor, "OCR Additions",
-                DeviceAttribute.Product, "Entity Radar Mk" + getTier(),
-                DeviceAttribute.Capacity, String.valueOf((int) getMaxRangeValue())
-        );
+        this.deviceInfo = buildDeviceInfo(getTier());
     }
 
     public int getTier() {
@@ -67,11 +63,25 @@ public class RadarBlockEntity extends BlockEntityEnvironment implements DeviceIn
     }
 
     public double getMaxRangeValue() {
-        return switch (getTier()) {
+        return maxRangeForTier(getTier());
+    }
+
+    public static double maxRangeForTier(int tier) {
+        return switch (tier) {
             case 2 -> 128.0;
             case 3 -> 256.0;
             default -> 64.0;
         };
+    }
+
+    public static Map<String, String> buildDeviceInfo(int tier) {
+        return Map.of(
+                DeviceAttribute.Class, DeviceClass.Generic,
+                DeviceAttribute.Description, "Entity radar",
+                DeviceAttribute.Vendor, "OCR Additions",
+                DeviceAttribute.Product, "Entity Radar Mk" + tier,
+                DeviceAttribute.Capacity, String.valueOf((int) maxRangeForTier(tier))
+        );
     }
 
     @Override
@@ -115,11 +125,38 @@ public class RadarBlockEntity extends BlockEntityEnvironment implements DeviceIn
 
     @Callback(doc = "function([radius:number]):table -- Scans entities within radius (clamped to tier max). Tier 1: type; Tier 2: type, distance; Tier 3: type, name, isPlayer, distance, x, y, z, uuid.")
     public Object[] scan(Context context, Arguments args) {
+        if (level != null && !level.isClientSide && node != null && node.network() == null) {
+            Network.joinOrCreateNetwork(this);
+        }
+        Vec3 center = Vec3.atCenterOf(worldPosition);
+        return scanEntities(
+                level,
+                node,
+                getTier(),
+                center,
+                worldPosition.getX(),
+                worldPosition.getY(),
+                worldPosition.getZ(),
+                args
+        );
+    }
+
+    /**
+     * Shared entity scanning logic used by both the {@link RadarBlockEntity} block
+     * and the mobile {@link dev.frontlineand2engineers.ocradditions.oc.RadarUpgradeEnvironment}.
+     */
+    public static Object[] scanEntities(
+            Level level,
+            Node node,
+            int tier,
+            Vec3 center,
+            double originX,
+            double originY,
+            double originZ,
+            Arguments args
+    ) {
         if (level == null || level.isClientSide) {
             return new Object[]{List.of()};
-        }
-        if (node != null && node.network() == null) {
-            Network.joinOrCreateNetwork(this);
         }
 
         if (Config.radarScanEnergyCost > 0.0 && node instanceof Connector connector) {
@@ -128,14 +165,15 @@ public class RadarBlockEntity extends BlockEntityEnvironment implements DeviceIn
             }
         }
 
-        int tier = getTier();
-        double maxRange = getMaxRangeValue();
+        double maxRange = maxRangeForTier(tier);
         double requested = args.count() > 0 && args.checkAny(0) != null ? args.checkDouble(0) : maxRange;
         double r = Double.isFinite(requested) && requested > 0 ? Math.min(requested, maxRange) : maxRange;
         double rSq = r * r;
 
-        Vec3 center = Vec3.atCenterOf(worldPosition);
-        AABB box = new AABB(worldPosition).inflate(r);
+        AABB box = new AABB(
+                center.x - r, center.y - r, center.z - r,
+                center.x + r, center.y + r, center.z + r
+        );
         List<Entity> found = level.getEntitiesOfClass(Entity.class, box, e -> !e.isRemoved());
 
         List<EntityDist> sorted = new ArrayList<>();
@@ -168,9 +206,9 @@ public class RadarBlockEntity extends BlockEntityEnvironment implements DeviceIn
                     entry.put("isPlayer", false);
                     entry.put("name", e.getName().getString());
                 }
-                double ox = Config.relativeCoordinates ? e.getX() - worldPosition.getX() : e.getX();
-                double oy = Config.relativeCoordinates ? e.getY() - worldPosition.getY() : e.getY();
-                double oz = Config.relativeCoordinates ? e.getZ() - worldPosition.getZ() : e.getZ();
+                double ox = Config.relativeCoordinates ? e.getX() - originX : e.getX();
+                double oy = Config.relativeCoordinates ? e.getY() - originY : e.getY();
+                double oz = Config.relativeCoordinates ? e.getZ() - originZ : e.getZ();
                 entry.put("x", ox);
                 entry.put("y", oy);
                 entry.put("z", oz);

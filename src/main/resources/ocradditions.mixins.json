@@ -4,6 +4,7 @@
   "package": "dev.frontlineand2engineers.ocradditions.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "GraphicsCardMixin"
   ],
   "client": [
     "CustomHeadLayerMixin"

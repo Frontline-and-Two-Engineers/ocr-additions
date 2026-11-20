@@ -1,0 +1,36 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "opencomputers:floppy"
+    },
+    {
+      "item": "minecraft:diamond_pickaxe"
+    },
+    [
+      {
+        "item": "opencomputers:graphicscard1"
+      },
+      {
+        "item": "opencomputers:graphicscard2"
+      },
+      {
+        "item": "opencomputers:graphicscard3"
+      },
+      {
+        "item": "opencomputers:graphicscard4"
+      }
+    ]
+  ],
+  "result": {
+    "components": {
+      "minecraft:custom_name": "\"OCCoin Wallet\"",
+      "opencomputers:disk_color": "lime",
+      "opencomputers:label": "OCCoin Wallet",
+      "opencomputers:loot_disk": "ocradditions:occoin_wallet"
+    },
+    "count": 1,
+    "id": "opencomputers:floppy"
+  }
+}

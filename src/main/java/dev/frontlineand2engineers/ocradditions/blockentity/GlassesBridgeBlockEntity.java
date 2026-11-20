@@ -7,6 +7,8 @@ import dev.frontlineand2engineers.ocradditions.hud.HudWidget;
 import dev.frontlineand2engineers.ocradditions.item.SmartGlassesItem;
 import dev.frontlineand2engineers.ocradditions.network.GlassesGazePayload;
 import dev.frontlineand2engineers.ocradditions.network.GlassesHudClickPayload;
+import dev.frontlineand2engineers.ocradditions.network.GlassesScreenSizePayload;
+import dev.frontlineand2engineers.ocradditions.network.GlassesSoundPayload;
 import dev.frontlineand2engineers.ocradditions.network.SyncHudPayload;
 import li.cil.oc.api.Network;
 import li.cil.oc.api.UnrecoverablePersistanceException;
@@ -23,8 +25,10 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
@@ -78,6 +82,7 @@ public class GlassesBridgeBlockEntity extends BlockEntityEnvironment implements 
     private final Set<String> globalDirtyRemoves = new LinkedHashSet<>();
     private final Map<UUID, LayerDiff> playerDiffs = new ConcurrentHashMap<>();
     private final Set<UUID> connectedPlayers = new HashSet<>();
+    private final Map<UUID, int[]> playerScreenSizes = new ConcurrentHashMap<>();
 
     private static final class LayerDiff {
         boolean clearAll = false;
@@ -136,6 +141,7 @@ public class GlassesBridgeBlockEntity extends BlockEntityEnvironment implements 
                 }
             }
             connectedPlayers.clear();
+            playerScreenSizes.clear();
         }
         super.setRemoved();
     }
@@ -174,6 +180,9 @@ public class GlassesBridgeBlockEntity extends BlockEntityEnvironment implements 
 
     public void serverTick() {
         if (!(level instanceof ServerLevel serverLevel)) return;
+        if (BridgeRegistry.get(bridgeId) != this) {
+            BridgeRegistry.register(bridgeId, this);
+        }
         if (node != null && node.network() == null) {
             Network.joinOrCreateNetwork(this);
         }
@@ -203,6 +212,7 @@ public class GlassesBridgeBlockEntity extends BlockEntityEnvironment implements 
             UUID pid = it.next();
             if (!currentIds.contains(pid)) {
                 it.remove();
+                playerScreenSizes.remove(pid);
                 ServerPlayer player = serverLevel.getServer().getPlayerList().getPlayer(pid);
                 if (player != null) {
                     PacketDistributor.sendToPlayer(player, new SyncHudPayload(true, List.of(), List.of()));
@@ -323,7 +333,7 @@ public class GlassesBridgeBlockEntity extends BlockEntityEnvironment implements 
                         result.value(), result.max(), result.text(),
                         result.targetUuid(), result.clickable(), result.points()
                 );
-            } else if (result.type() == HudWidget.Type.WORLD_LINE) {
+            } else if (result.type() == HudWidget.Type.WORLD_LINE || result.type() == HudWidget.Type.WORLD_BOX) {
                 result = new HudWidget(
                         result.id(), result.type(), result.anchor(),
                         result.x() + worldPosition.getX(),
@@ -350,16 +360,19 @@ public class GlassesBridgeBlockEntity extends BlockEntityEnvironment implements 
         if (level == null) return false;
 
         boolean sameDim = player.level().dimension().equals(level.dimension());
-        if (!sameDim && !Config.allowCrossDimension) return false;
-
-        if (sameDim && Config.maxRange > 0) {
-            double maxDistSq = (double) Config.maxRange * Config.maxRange;
-            double dx = player.getX() - (worldPosition.getX() + 0.5);
-            double dy = player.getY() - (worldPosition.getY() + 0.5);
-            double dz = player.getZ() - (worldPosition.getZ() + 0.5);
-            return dx * dx + dy * dy + dz * dz <= maxDistSq;
+        boolean withinBridge;
+        if (!sameDim) {
+            withinBridge = Config.allowCrossDimension;
+        } else if (Config.maxRange <= 0) {
+            withinBridge = true;
+        } else {
+            withinBridge = OcRelayHelper.isWithinRange(
+                    player.getX(), player.getY(), player.getZ(),
+                    worldPosition.getX() + 0.5, worldPosition.getY() + 0.5, worldPosition.getZ() + 0.5,
+                    Config.maxRange
+            );
         }
-        return true;
+        return withinBridge || OcRelayHelper.isPlayerInNetworkRelayRange(node, player, level.dimension());
     }
 
     public int getPlayerTier(ServerPlayer player) {
@@ -423,6 +436,28 @@ public class GlassesBridgeBlockEntity extends BlockEntityEnvironment implements 
         enqueueEvent(evt);
 
         emitSignal("glasses_hud_click", playerUuid, playerName, payload.widgetId(), payload.button());
+    }
+
+    public void handleScreenSize(ServerPlayer player, GlassesScreenSizePayload payload) {
+        if (!isPlayerConnected(player)) {
+            return;
+        }
+        int w = Math.clamp(payload.width(), 1, 16384);
+        int h = Math.clamp(payload.height(), 1, 16384);
+        UUID pid = player.getUUID();
+        int[] prev = playerScreenSizes.put(pid, new int[]{w, h});
+        if (prev == null || prev[0] != w || prev[1] != h) {
+            String playerUuid = pid.toString();
+            String playerName = player.getGameProfile().getName();
+            Map<String, Object> evt = new LinkedHashMap<>();
+            evt.put("event", "glasses_screen_resized");
+            evt.put("playerUuid", playerUuid);
+            evt.put("playerName", playerName);
+            evt.put("screenWidth", w);
+            evt.put("screenHeight", h);
+            enqueueEvent(evt);
+            emitSignal("glasses_screen_resized", playerUuid, playerName, w, h);
+        }
     }
 
     public void handleGaze(ServerPlayer player, GlassesGazePayload payload) {
@@ -682,6 +717,9 @@ public class GlassesBridgeBlockEntity extends BlockEntityEnvironment implements 
             info.put("name", player.getGameProfile().getName());
             info.put("tier", tier);
             info.put("dimension", player.level().dimension().location().toString());
+            int[] screen = playerScreenSizes.get(player.getUUID());
+            info.put("screenWidth", screen != null ? screen[0] : 0);
+            info.put("screenHeight", screen != null ? screen[1] : 0);
             if (tier >= 3) {
                 double ox = Config.relativeCoordinates ? worldPosition.getX() : 0.0;
                 double oy = Config.relativeCoordinates ? worldPosition.getY() : 0.0;
@@ -739,7 +777,61 @@ public class GlassesBridgeBlockEntity extends BlockEntityEnvironment implements 
         stats.put("isOnGround", player.onGround());
         stats.put("energy", SmartGlassesItem.getEnergy(glasses));
         stats.put("maxEnergy", Config.energyCapacity);
+        int[] screen = playerScreenSizes.get(player.getUUID());
+        stats.put("screenWidth", screen != null ? screen[0] : 0);
+        stats.put("screenHeight", screen != null ? screen[1] : 0);
         return new Object[]{stats};
+    }
+
+    @Callback(direct = true, doc = "function(playerUuid:string):number, number -- Returns the wearer's current scaled GUI screenWidth and screenHeight.")
+    public Object[] getScreenSize(Context context, Arguments args) {
+        ServerPlayer player = findConnectedPlayer(args.checkString(0));
+        if (player == null) {
+            return new Object[]{null, "player not connected"};
+        }
+        int[] screen = playerScreenSizes.get(player.getUUID());
+        if (screen == null) {
+            return new Object[]{null, "screen size not reported yet"};
+        }
+        return new Object[]{screen[0], screen[1]};
+    }
+
+    @Callback(doc = "function(playerUuid:string, soundId:string[, volume:number, pitch:number]):boolean -- Plays a private sound notification on a connected wearer's glasses.")
+    public Object[] playSound(Context context, Arguments args) {
+        ServerPlayer player = findConnectedPlayer(args.checkString(0));
+        if (player == null) {
+            return new Object[]{false, "player not connected"};
+        }
+        String soundId = args.checkString(1).trim();
+        if (ResourceLocation.tryParse(soundId) == null) {
+            return new Object[]{false, "invalid soundId: " + soundId};
+        }
+        float volume = Mth.clamp((float) args.optDouble(2, 1.0), 0.0f, 2.0f);
+        float pitch = Mth.clamp((float) args.optDouble(3, 1.0), 0.5f, 2.0f);
+        PacketDistributor.sendToPlayer(player, new GlassesSoundPayload(soundId, volume, pitch));
+        return new Object[]{true};
+    }
+
+    @Callback(doc = "function(soundId:string[, volume:number, pitch:number]):number -- Plays a sound notification on all connected glasses.")
+    public Object[] broadcastSound(Context context, Arguments args) {
+        if (!(level instanceof ServerLevel serverLevel)) {
+            return new Object[]{0};
+        }
+        String soundId = args.checkString(0).trim();
+        if (ResourceLocation.tryParse(soundId) == null) {
+            throw new IllegalArgumentException("Invalid soundId: " + soundId);
+        }
+        float volume = Mth.clamp((float) args.optDouble(1, 1.0), 0.0f, 2.0f);
+        float pitch = Mth.clamp((float) args.optDouble(2, 1.0), 0.5f, 2.0f);
+        GlassesSoundPayload payload = new GlassesSoundPayload(soundId, volume, pitch);
+        int count = 0;
+        for (ServerPlayer player : serverLevel.getServer().getPlayerList().getPlayers()) {
+            if (isPlayerConnected(player)) {
+                PacketDistributor.sendToPlayer(player, payload);
+                count++;
+            }
+        }
+        return new Object[]{count};
     }
 
     @Callback(doc = "function(playerUuid:string, message:string):boolean -- Sends a chat message to a connected Tier 2+ wearer.")
@@ -923,6 +1015,21 @@ public class GlassesBridgeBlockEntity extends BlockEntityEnvironment implements 
         return new Object[]{true};
     }
 
+    @Callback(doc = "function(id:string, x1:number, y1:number, z1:number, x2:number, y2:number, z2:number[, label:string, color:number]):boolean -- Adds a 3D wireframe bounding box relative to the bridge (Tier 3).")
+    public Object[] addWorldBox(Context context, Arguments args) {
+        String id = args.checkString(0);
+        float x1 = (float) args.checkDouble(1);
+        float y1 = (float) args.checkDouble(2);
+        float z1 = (float) args.checkDouble(3);
+        float x2 = (float) args.checkDouble(4);
+        float y2 = (float) args.checkDouble(5);
+        float z2 = (float) args.checkDouble(6);
+        String label = args.optString(7, "");
+        int color = checkColor(args, 8, 0xFF00E5FF);
+        upsertGlobal(HudWidget.worldBox(id, x1, y1, z1, x2, y2, z2, label, color));
+        return new Object[]{true};
+    }
+
     @Callback(doc = "function(id:string, entityUuid:string, label:string[, color:number]):boolean -- Adds a 3D entity tracking box (Tier 3).")
     public Object[] addEntityMarker(Context context, Arguments args) {
         String id = args.checkString(0);
@@ -1088,6 +1195,25 @@ public class GlassesBridgeBlockEntity extends BlockEntityEnvironment implements 
         float z2 = (float) args.checkDouble(7);
         int color = checkColor(args, 8, 0xFF00E5FF);
         upsertPlayer(pid, HudWidget.worldLine(id, x1, y1, z1, x2, y2, z2, color));
+        return new Object[]{true};
+    }
+
+    @Callback(doc = "function(playerUuid:string, id:string, x1:number, y1:number, z1:number, x2:number, y2:number, z2:number[, label:string, color:number]):boolean -- Adds a per-player 3D wireframe bounding box (Tier 3).")
+    public Object[] addPlayerWorldBox(Context context, Arguments args) {
+        UUID pid = parseUuid(args.checkString(0));
+        Object[] err = checkPlayerTierForDirectCall(pid, 3);
+        if (err != null) return err;
+
+        String id = args.checkString(1);
+        float x1 = (float) args.checkDouble(2);
+        float y1 = (float) args.checkDouble(3);
+        float z1 = (float) args.checkDouble(4);
+        float x2 = (float) args.checkDouble(5);
+        float y2 = (float) args.checkDouble(6);
+        float z2 = (float) args.checkDouble(7);
+        String label = args.optString(8, "");
+        int color = checkColor(args, 9, 0xFF00E5FF);
+        upsertPlayer(pid, HudWidget.worldBox(id, x1, y1, z1, x2, y2, z2, label, color));
         return new Object[]{true};
     }
 

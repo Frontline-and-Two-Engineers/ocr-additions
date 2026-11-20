@@ -2,6 +2,8 @@
   "replace": false,
   "values": [
     "ocradditions:glasses_bridge",
+    "ocradditions:card_rack",
+    "ocradditions:raid_v2",
     "ocradditions:radar_tier_1",
     "ocradditions:radar_tier_2",
     "ocradditions:radar_tier_3"

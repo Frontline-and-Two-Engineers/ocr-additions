@@ -19,3 +19,4 @@ replay_pid*.log
 
 .DS_Store
 Thumbs.db
+/occoin-host/

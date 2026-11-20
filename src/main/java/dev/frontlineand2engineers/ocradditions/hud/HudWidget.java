@@ -40,6 +40,7 @@ public record HudWidget(
         GRAPH(2),
         WORLD_MARKER(3),
         WORLD_LINE(3),
+        WORLD_BOX(3),
         ENTITY_MARKER(3);
 
         public final int requiredTier;
@@ -60,7 +61,7 @@ public record HudWidget(
     }
 
     public boolean isWorldWidget() {
-        return type == Type.WORLD_MARKER || type == Type.WORLD_LINE || type == Type.ENTITY_MARKER;
+        return type == Type.WORLD_MARKER || type == Type.WORLD_LINE || type == Type.WORLD_BOX || type == Type.ENTITY_MARKER;
     }
 
     public static HudWidget rect(String id, float x, float y, float width, float height, int color) {
@@ -102,6 +103,12 @@ public record HudWidget(
                                       float x2, float y2, float z2, int color) {
         return new HudWidget(id, Type.WORLD_LINE, Anchor.TOP_LEFT, x1, y1, z1, x2, y2, z2,
                 0, 0, color, 0, 1.0f, 0, 0, "", "", false, List.of());
+    }
+
+    public static HudWidget worldBox(String id, float x1, float y1, float z1,
+                                     float x2, float y2, float z2, String label, int color) {
+        return new HudWidget(id, Type.WORLD_BOX, Anchor.TOP_LEFT, x1, y1, z1, x2, y2, z2,
+                0, 0, color, 0, 1.0f, 0, 0, label, "", false, List.of());
     }
 
     public static HudWidget entityMarker(String id, String entityUuid, String label, int color) {
