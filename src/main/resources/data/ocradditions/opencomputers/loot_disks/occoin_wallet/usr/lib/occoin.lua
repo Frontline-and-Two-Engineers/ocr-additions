@@ -65,15 +65,15 @@ function occoin.addressFromPubKeyRaw(dataCard, pubRaw)
   return "OCC-" .. string.sub(hashHex, 1, 24)
 end
 
--- Генерация адреса кошелька из публичного ключа (Base64)
+-- Генерация адреса кошелька из публичного ключа (Hex)
 -- Формат: OCC-<первые 24 символа hex(sha256(pubKeyBytes))>
-function occoin.addressFromPubKeyB64(dataCard, pubB64)
-  if type(pubB64) ~= "string" or #pubB64 == 0 then
-    error("addressFromPubKeyB64: pubB64 is nil or empty")
+function occoin.addressFromPubKeyB64(dataCard, pubHex)
+  if type(pubHex) ~= "string" or #pubHex == 0 then
+    error("addressFromPubKeyB64: pubKey is nil or empty")
   end
-  local raw = dataCard.decode64(pubB64)
+  local raw = occoin.fromHex(pubHex)
   if type(raw) ~= "string" or #raw == 0 then
-    error("addressFromPubKeyB64: decode64 failed")
+    error("addressFromPubKeyB64: fromHex failed")
   end
   return occoin.addressFromPubKeyRaw(dataCard, raw)
 end
@@ -89,16 +89,13 @@ function occoin.generateWalletKeys(dataCard)
   if type(pubRaw) ~= "string" or type(privRaw) ~= "string" then
     error("key.serialize() did not return string")
   end
-  local pubB64 = dataCard.encode64(pubRaw)
-  local privB64 = dataCard.encode64(privRaw)
-  if type(pubB64) ~= "string" or type(privB64) ~= "string" then
-    error("dataCard.encode64() returned nil")
-  end
+  local pubHex = occoin.toHex(pubRaw)
+  local privHex = occoin.toHex(privRaw)
   local address = occoin.addressFromPubKeyRaw(dataCard, pubRaw)
   return {
     address = address,
-    pubB64 = pubB64,
-    privB64 = privB64
+    pubB64 = pubHex,
+    privB64 = privHex
   }
 end
 
@@ -113,9 +110,9 @@ function occoin.txPayload(fromAddr, toAddr, amount, nonce, memo)
   }, "|")
 end
 
--- Подпись транзакции приватным ключом (возвращает Base64 подпись)
-function occoin.signTx(dataCard, privB64, fromAddr, toAddr, amount, nonce, memo)
-  local okKey, privKey = pcall(dataCard.deserializeKey, dataCard.decode64(privB64), "ec-private")
+-- Подпись транзакции приватным ключом (возвращает Hex подпись)
+function occoin.signTx(dataCard, privHex, fromAddr, toAddr, amount, nonce, memo)
+  local okKey, privKey = pcall(dataCard.deserializeKey, occoin.fromHex(privHex), "ec-private")
   if not okKey or not privKey then
     return nil, "Ошибка десериализации приватного ключа"
   end
@@ -124,25 +121,25 @@ function occoin.signTx(dataCard, privB64, fromAddr, toAddr, amount, nonce, memo)
   if not okSig or not sigRaw then
     return nil, "Ошибка создания подписи ECDSA"
   end
-  return dataCard.encode64(sigRaw)
+  return occoin.toHex(sigRaw)
 end
 
 -- Проверка подписи транзакции публичным ключом
-function occoin.verifyTx(dataCard, pubB64, sigB64, fromAddr, toAddr, amount, nonce, memo)
-  if type(pubB64) ~= "string" or type(sigB64) ~= "string" then
+function occoin.verifyTx(dataCard, pubHex, sigHex, fromAddr, toAddr, amount, nonce, memo)
+  if type(pubHex) ~= "string" or type(sigHex) ~= "string" then
     return false, "Неверный формат ключа или подписи"
   end
-  local okAddr, expectedAddr = pcall(occoin.addressFromPubKeyB64, dataCard, pubB64)
+  local okAddr, expectedAddr = pcall(occoin.addressFromPubKeyB64, dataCard, pubHex)
   if not okAddr or expectedAddr ~= fromAddr then
     return false, "Адрес отправителя не соответствует публичному ключу"
   end
-  local okKey, pubKey = pcall(dataCard.deserializeKey, dataCard.decode64(pubB64), "ec-public")
+  local okKey, pubKey = pcall(dataCard.deserializeKey, occoin.fromHex(pubHex), "ec-public")
   if not okKey or not pubKey then
     return false, "Некорректный публичный ключ"
   end
-  local okDec, sigRaw = pcall(dataCard.decode64, sigB64)
+  local okDec, sigRaw = pcall(occoin.fromHex, sigHex)
   if not okDec or not sigRaw then
-    return false, "Некорректная подпись Base64"
+    return false, "Некорректная подпись"
   end
   local payload = occoin.txPayload(fromAddr, toAddr, amount, nonce, memo)
   local okVer, valid = pcall(dataCard.ecdsa, payload, pubKey, sigRaw)
