@@ -17,11 +17,6 @@
 
 ## Требуемые компоненты в OpenComputers
 
-### Для Хоста (Сервера)
-1. **Computer Case / Server Rack** (OpenOS на HDD)
-2. **Data Card (Tier 3)** — обязательна для `ecdsa`, `generateKeyPair`, `sha256`
-3. **Wireless Network Card (Tier 1 или Tier 2)** — чем выше уровень, тем больше радиус связи
-4. **GPU (Tier 2 или Tier 3)** + **Screen (Tier 2 или Tier 3)** + **Keyboard**
 
 ### Для Клиента (Кошелька)
 1. **Computer / Tablet** (OpenOS на HDD) — *отлично работает и на планшетах (Tablet) с Data Card Tier 3 и Wireless Card!*
@@ -33,20 +28,7 @@
 
 ## Установка и запуск
 
-Скопируйте папку `oc-crypto` в `/home/oc-crypto` на компьютерах в OpenComputers (или через папку сохранения мира `saves/<мир>/opencomputers/<uuid>/home/oc-crypto`).
-
-### 1. Запуск Хоста
-На сервере выполните:
-```lua
-/home/oc-crypto/host/host.lua
-```
-Управление на хосте:
-- `M` — выпустить монеты (Mint) на указанный адрес `OCC-...` (для первичной раздачи)
-- `+` / `-` — изменить сложность майнинга (`1..6` ведущих нулей SHA-256)
-- `S` — принудительно сохранить реестр на диск
-- `Q` — сохранить и остановить сервер
-
-### 2. Запуск Клиента (Кошелька)
+### Запуск Клиента (Кошелька)
 На клиенте (компьютере или планшете) выполните:
 ```lua
 /home/oc-crypto/client/wallet.lua
