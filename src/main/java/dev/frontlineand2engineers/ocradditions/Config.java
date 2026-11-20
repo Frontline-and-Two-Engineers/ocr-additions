@@ -56,11 +56,11 @@ public final class Config {
 
     private static final ModConfigSpec.BooleanValue CARD_RACK_ENABLED = BUILDER
             .comment("Enable the Card Rack block (network expansion for up to 8 OC cards).")
-            .define("cardRackEnabled", true);
+            .define("cardRackEnabled", false);
 
     private static final ModConfigSpec.BooleanValue RAID_V2_ENABLED = BUILDER
             .comment("Enable the RAID v2 block (multi-drive array for up to 18 HDDs/SSDs).")
-            .define("raidV2Enabled", true);
+            .define("raidV2Enabled", false);
 
     private static final ModConfigSpec.IntValue GPU_COMPUTE_WORKER_THREADS = BUILDER
             .comment("Worker threads for GPU compute across all GPUs (0 = auto: half of CPU cores, capped at 4).")
@@ -68,7 +68,7 @@ public final class Config {
 
     private static final ModConfigSpec.DoubleValue GPU_COMPUTE_DUTY_CYCLE = BUILDER
             .comment("Max worker CPU duty cycle (0.05 to 1.0). Lower values add short sleeps between chunks to protect host TPS.")
-            .defineInRange("gpuComputeDutyCycle", 0.50, 0.05, 1.0);
+            .defineInRange("gpuComputeDutyCycle", 0.70, 0.05, 1.0);
 
     private static final ModConfigSpec.IntValue GPU_COMPUTE_MAX_JOBS_PER_CARD = BUILDER
             .comment("Maximum active/queued compute jobs per GPU card.")
@@ -87,10 +87,10 @@ public final class Config {
             .defineInRange("gpuComputeMaxOutputRows", 16384, 64, 1048576);
 
     private static final GpuTierConfig[] GPU_TIER_CONFIGS = {
-            defineGpuTier(1, 16, 16_384, 16_384, 4.0),
-            defineGpuTier(2, 64, 131_072, 65_536, 1.0),
-            defineGpuTier(3, 256, 1_048_576, 65_536, 0.25),
-            defineGpuTier(4, 512, 4_194_304, 65_536, 0.0)
+            defineGpuTier(1, 4, 1024, 16_384, 40.0),
+            defineGpuTier(2, 8, 2048, 65_536, 20.0),
+            defineGpuTier(3, 12, 4096, 65_536, 10.0),
+            defineGpuTier(4, 16, 8192, 65_536, 5.0)
     };
 
     public static final ModConfigSpec SPEC = BUILDER.build();
