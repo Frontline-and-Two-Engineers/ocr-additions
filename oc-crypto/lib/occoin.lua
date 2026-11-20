@@ -56,20 +56,45 @@ function occoin.sha256Hex(dataCard, str)
   return occoin.toHex(dataCard.sha256(str))
 end
 
+-- Генерация адреса кошелька из сырых байтов публичного ключа
+function occoin.addressFromPubKeyRaw(dataCard, pubRaw)
+  if type(pubRaw) ~= "string" or #pubRaw == 0 then
+    error("addressFromPubKeyRaw: pubRaw is nil or empty")
+  end
+  local hashHex = occoin.toHex(dataCard.sha256(pubRaw))
+  return "OCC-" .. string.sub(hashHex, 1, 24)
+end
+
 -- Генерация адреса кошелька из публичного ключа (Base64)
 -- Формат: OCC-<первые 24 символа hex(sha256(pubKeyBytes))>
 function occoin.addressFromPubKeyB64(dataCard, pubB64)
+  if type(pubB64) ~= "string" or #pubB64 == 0 then
+    error("addressFromPubKeyB64: pubB64 is nil or empty")
+  end
   local raw = dataCard.decode64(pubB64)
-  local hashHex = occoin.toHex(dataCard.sha256(raw))
-  return "OCC-" .. string.sub(hashHex, 1, 24)
+  if type(raw) ~= "string" or #raw == 0 then
+    error("addressFromPubKeyB64: decode64 failed")
+  end
+  return occoin.addressFromPubKeyRaw(dataCard, raw)
 end
 
 -- Генерация новой пары ключей ECDSA (256 бит)
 function occoin.generateWalletKeys(dataCard)
   local pubKey, privKey = dataCard.generateKeyPair(256)
-  local pubB64 = dataCard.encode64(pubKey.serialize())
-  local privB64 = dataCard.encode64(privKey.serialize())
-  local address = occoin.addressFromPubKeyB64(dataCard, pubB64)
+  if not pubKey or not privKey then
+    error("generateKeyPair(256) returned nil (check energy / Data Card Tier 3)")
+  end
+  local pubRaw = pubKey.serialize()
+  local privRaw = privKey.serialize()
+  if type(pubRaw) ~= "string" or type(privRaw) ~= "string" then
+    error("key.serialize() did not return string")
+  end
+  local pubB64 = dataCard.encode64(pubRaw)
+  local privB64 = dataCard.encode64(privRaw)
+  if type(pubB64) ~= "string" or type(privB64) ~= "string" then
+    error("dataCard.encode64() returned nil")
+  end
+  local address = occoin.addressFromPubKeyRaw(dataCard, pubRaw)
   return {
     address = address,
     pubB64 = pubB64,
